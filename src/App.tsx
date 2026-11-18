@@ -28,7 +28,7 @@ export default function App() {
         </Route>
         <Route path="mission/pick" element={<MissionPick />} />
         <Route path="mission/:place" element={<MissionSuggest />} />
-        <Route path="run/:id" element={<Run />} />
+        <Route path="run/:sessionId" element={<Run />} />
         <Route path="done" element={<Done />} />
         <Route path="rest" element={<Rest />} />
         <Route path="breathing" element={<Breathing />} />

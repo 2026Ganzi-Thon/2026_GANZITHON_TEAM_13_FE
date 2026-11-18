@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 interface Props {
-  variant?: 'primary' | 'line' | 'text'
+  variant?: 'primary' | 'dark' | 'text'
   to?: string
   state?: unknown
   disabled?: boolean
@@ -10,17 +10,18 @@ interface Props {
   children: ReactNode
 }
 
-export function Button({ variant = 'line', to, state, disabled, onClick, children }: Props) {
-  const className = variant === 'text' ? 'btn btn-text' : `btn btn-${variant}`
+const classes = { primary: 'btn', dark: 'btn btn-dark', text: 'btn btn-text' }
+
+export function Button({ variant = 'primary', to, state, disabled, onClick, children }: Props) {
   if (to && !disabled) {
     return (
-      <Link className={className} to={to} state={state} onClick={onClick}>
+      <Link className={classes[variant]} to={to} state={state} onClick={onClick}>
         {children}
       </Link>
     )
   }
   return (
-    <button className={className} type="button" disabled={disabled} onClick={onClick}>
+    <button className={classes[variant]} type="button" disabled={disabled} onClick={onClick}>
       {children}
     </button>
   )

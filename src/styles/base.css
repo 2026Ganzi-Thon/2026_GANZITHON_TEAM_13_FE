@@ -1,13 +1,24 @@
+@font-face {
+  font-family: 'GmarketSans';
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+}
+
+/* Figma 팔레트: Milk Foam / Mocha / Garden Matcha 계열 */
 :root {
-  --ink: #1c1c1c;
-  --muted: #767676;
-  --line: #c9c9c9;
-  --fill: #efefef;
-  --bg: #fff;
-  --radius: 12px;
+  --cream: #f8f1e1;
+  --leaf: #e5eba2;
+  --leaf-strong: #d3de7a;
+  --green: #a8c558;
+  --green-deep: #5d7f2f;
+  --mocha: #5a4636;
+  --muted: #8a7a6b;
+  --line: rgba(90, 70, 54, 0.45);
+  --font-display: 'GmarketSans', 'Pretendard Variable', Pretendard, sans-serif;
   font-family: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo',
     'Noto Sans KR', sans-serif;
-  color: var(--ink);
+  color: var(--mocha);
 }
 
 * {
@@ -22,7 +33,7 @@ body,
 }
 
 body {
-  background: #f2f2f2;
+  background: #ebe3d0;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,6 +54,11 @@ a {
   text-decoration: none;
 }
 
+:focus-visible {
+  outline: 2px solid var(--green-deep);
+  outline-offset: 2px;
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -50,11 +66,11 @@ a {
   height: 100dvh;
   margin: 0 auto;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--cream);
 }
 
 @media (min-width: 431px) {
   .app {
-    box-shadow: 0 0 0 1px #e2e2e2;
+    box-shadow: 0 0 0 1px rgba(90, 70, 54, 0.15);
   }
 }

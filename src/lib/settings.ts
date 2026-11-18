@@ -1,3 +1,4 @@
+import { notificationApi } from '@/api/endpoints'
 import { createStore } from './store'
 
 export interface Settings {
@@ -10,9 +11,15 @@ export interface Settings {
 export const settingsStore = createStore<Settings>('settings', {
   onboarded: false,
   notify: true,
-  notifyTime: '12:00',
+  notifyTime: '10:00',
   useLocation: false,
 })
 
-export const updateSettings = (patch: Partial<Settings>) =>
-  settingsStore.set({ ...settingsStore.get(), ...patch })
+export function updateSettings(patch: Partial<Settings>) {
+  const next = { ...settingsStore.get(), ...patch }
+  settingsStore.set(next)
+  if ('notify' in patch || 'notifyTime' in patch) {
+    // 알림 API가 구현되면 서버에도 반영된다. 실패해도 기기 설정은 유지한다.
+    notificationApi.patch(next.notify, next.notifyTime).catch(() => undefined)
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Mascot } from '@/components/Mascot'
 import { settingsStore } from '@/lib/settings'
 
 export function Splash() {
@@ -14,9 +15,8 @@ export function Splash() {
   return (
     <div className="page">
       <main className="page-body center">
-        <div className="splash-logo" />
-        <h1 className="title">1분 미션</h1>
-        <p className="lead">작게 시작해도 괜찮아요</p>
+        <Mascot size={88} />
+        <h1 className="title">쉼표</h1>
       </main>
     </div>
   )

@@ -1,63 +1,87 @@
 import { useState } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { BackLink } from '@/components/BackLink'
 import { Button } from '@/components/Button'
 import { Page } from '@/components/Page'
-import { filters, nearbyPlaces } from '@/lib/places'
+import { useLoad } from '@/hooks/useLoad'
+import { startSession } from '@/lib/activity'
+import { findLocalMission, type Mission } from '@/lib/missions'
+import { type Coords, loadPlaces, RADIUS_OPTIONS } from '@/lib/places'
 
-const WALK_MISSION = '/run/11'
+interface PlacesState {
+  mission?: Mission
+  coords?: Coords | null
+}
 
 export function Places() {
-  const [active, setActive] = useState<string[]>(['near'])
+  const navigate = useNavigate()
+  const state = useLocation().state as PlacesState | null
+  const [radius, setRadius] = useState(1000)
   const [selected, setSelected] = useState<number>()
+  const [starting, setStarting] = useState(false)
 
-  const toggle = (key: string) =>
-    setActive((cur) => (cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key]))
+  const mission = state?.mission ?? findLocalMission(11)!
+  const coords = state?.coords
+  const { data: places = [], loading } = useLoad(
+    () => (coords ? loadPlaces(mission.id, coords, radius) : Promise.resolve([])),
+    [radius],
+  )
 
-  const tests = filters.filter((f) => active.includes(f.key))
-  const list = nearbyPlaces.filter((p) => tests.every((f) => f.test(p)))
-  const picked = nearbyPlaces.find((p) => p.id === selected)
+  if (!coords) return <Navigate to="/location" replace />
+
+  const place = places.find((p) => p.id === selected)
+
+  const start = async () => {
+    setStarting(true)
+    const sessionId = await startSession(mission)
+    navigate(`/run/${sessionId}`, { state: { mission, placeName: place?.name } })
+  }
 
   return (
     <Page
       left={<BackLink />}
-      right="장소 추천"
       footer={
         <>
-          <Button variant="primary" to={WALK_MISSION} state={{ place: picked?.name }} disabled={!picked}>
-            이 장소로 미션 시작
+          <Button disabled={starting} onClick={start}>
+            {place ? '이 장소로 미션 시작' : '장소 없이 미션 시작'}
           </Button>
-          <Button to={WALK_MISSION}>장소 없이 시작</Button>
         </>
       }
     >
       <h1 className="title">어디로 가볼까요?</h1>
       <div className="chips">
-        {filters.map((f) => (
+        {RADIUS_OPTIONS.map((r) => (
           <button
-            key={f.key}
+            key={r}
             type="button"
             className="chip"
-            aria-pressed={active.includes(f.key)}
-            onClick={() => toggle(f.key)}
+            aria-pressed={radius === r}
+            onClick={() => setRadius(r)}
           >
-            {f.label}
+            {r < 1000 ? `${r}m` : `${r / 1000}km`} 이내
           </button>
         ))}
       </div>
-      {list.length === 0 && <p className="lead">조건에 맞는 장소가 없어요. 필터를 줄여보세요.</p>}
-      {list.map((p) => (
+      {!loading && places.length === 0 && (
+        <p className="lead muted">근처에 추천할 곳을 찾지 못했어요. 범위를 넓히거나 장소 없이 시작해도 괜찮아요.</p>
+      )}
+      {places.map((p) => (
         <button
           key={p.id}
           type="button"
-          className="card"
+          className="pill"
+          style={{ flexDirection: 'column', alignItems: 'stretch', borderRadius: 22 }}
           aria-pressed={selected === p.id}
           onClick={() => setSelected(p.id)}
         >
-          <div className="illust" style={{ height: 72 }} />
-          <h2 className="card-title">{p.name}</h2>
-          <p className="eyebrow">
-            도보 {p.walkMinutes}분 · {p.free ? '무료' : '유료'} · {p.sit ? '앉아서 쉬기 좋음' : '걷기 좋음'}
-          </p>
+          <span style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span className="pill-title">{p.name}</span>
+            <span className="badge">도보 {p.walkMinutes}분</span>
+          </span>
+          <span
+            className="photo"
+            style={p.imageUrl ? { backgroundImage: `url(${p.imageUrl})` } : undefined}
+          />
         </button>
       ))}
     </Page>

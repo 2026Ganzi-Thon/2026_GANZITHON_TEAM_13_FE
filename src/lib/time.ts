@@ -10,12 +10,18 @@ export const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d
 /** 월요일 = 0 */
 export const weekdayIndex = (d: Date) => (d.getDay() + 6) % 7
 
+export const startOfWeek = (d: Date) => new Date(startOfDay(d).getTime() - weekdayIndex(d) * DAY)
+
 export const dayDiff = (from: Date, to = new Date()) =>
   Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / DAY)
 
-export function formatWhen(date: Date) {
+export function formatDay(date: Date) {
   const diff = dayDiff(date)
   if (diff === 0) return '오늘'
   if (diff === 1) return '어제'
-  return date.toLocaleDateString('ko-KR', { weekday: 'long' })
+  const label = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
+  return label
 }
+
+export const formatTime = (date: Date) =>
+  date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })

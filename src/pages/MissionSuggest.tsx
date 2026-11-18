@@ -1,34 +1,61 @@
-import { useMemo } from 'react'
-import { Link, Navigate, NavLink, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Navigate, NavLink, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/Button'
+import { MissionItem } from '@/components/MissionItem'
 import { Page } from '@/components/Page'
-import { isPlace, missionMeta, randomMission } from '@/lib/missions'
-import { addEntry } from '@/lib/records'
+import { useLoad } from '@/hooks/useLoad'
+import { recordRest, startSession } from '@/lib/activity'
+import { loadMissions, loadRandomMission, type Place } from '@/lib/missions'
 
 export function MissionSuggest() {
   const { place } = useParams()
+  if (place !== 'indoor' && place !== 'outdoor') return <Navigate to="/home" replace />
+  return <Suggest key={place} place={place} />
+}
+
+function Suggest({ place }: { place: Place }) {
   const navigate = useNavigate()
-  const mission = useMemo(() => (isPlace(place) ? randomMission(place) : undefined), [place])
+  const [selected, setSelected] = useState<number>()
+  const [starting, setStarting] = useState(false)
+  const { data, loading } = useLoad(
+    () => Promise.all([loadMissions(place), loadRandomMission(place)]),
+    [place],
+  )
+  const [missions, random] = data ?? [[], undefined]
 
-  if (!isPlace(place) || !mission) return <Navigate to="/home" replace />
+  // 랜덤으로 추천된 미션을 처음 선택 상태로 둔다
+  useEffect(() => {
+    if (random) setSelected(random.id)
+  }, [random])
 
+  const mission = missions.find((m) => m.id === selected)
   const outdoor = place === 'outdoor'
 
+  const start = async () => {
+    if (!mission) return
+    setStarting(true)
+    const sessionId = await startSession(mission)
+    navigate(`/run/${sessionId}`, { state: { mission } })
+  }
+
   const skip = () => {
-    addEntry('rest', '건너뛴 날')
+    recordRest('SKIP')
     navigate('/rest')
   }
 
   return (
     <Page
-      left="1분 미션"
-      right="미션 제안"
       footer={
         <>
-          <Button variant="primary" to={`/run/${mission.id}`}>
+          <Button disabled={!mission || starting} onClick={start}>
             {outdoor ? '밖으로 나가 보기' : '시작하기'}
           </Button>
-          <Button to={outdoor ? '/mission/indoor' : '/mission/pick'}>
+          {outdoor && mission && (
+            <Button variant="text" to="/location" state={{ mission }}>
+              근처 가볼 만한 곳 보기
+            </Button>
+          )}
+          <Button variant="dark" to={outdoor ? '/mission/indoor' : '/mission/pick'}>
             {outdoor ? '집 안 미션으로 바꾸기' : '다른 미션으로 바꾸기'}
           </Button>
           <Button variant="text" onClick={skip}>
@@ -45,22 +72,10 @@ export function MissionSuggest() {
           집 밖
         </NavLink>
       </nav>
-      <section className="card" style={{ gap: 10 }}>
-        <div className="illust" />
-        <p className="eyebrow">{missionMeta(mission)}</p>
-        <h1 className="title" style={{ fontSize: 18 }}>
-          {mission.title}
-        </h1>
-        <p className="lead">
-          {outdoor ? '부담되면 집 안 미션으로 바꿀 수 있어요.' : '할 수 있을 때, 부담 없이 시작해요.'}
-        </p>
-      </section>
-      {outdoor && (
-        <Link to="/location" className="card card-dashed">
-          <span className="eyebrow">장소 추천 · 위치 동의 시</span>
-          <span className="card-title">근처 가볼 만한 곳 보기</span>
-        </Link>
-      )}
+      {loading && <p className="lead muted">미션을 불러오고 있어요</p>}
+      {missions.map((m) => (
+        <MissionItem key={m.id} mission={m} selected={m.id === selected} onSelect={() => setSelected(m.id)} />
+      ))}
     </Page>
   )
 }
