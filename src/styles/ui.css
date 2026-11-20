@@ -263,12 +263,6 @@ input[type='time'] {
   font-size: 15px;
 }
 
-.photo {
-  height: 96px;
-  background: var(--leaf-strong) center / cover;
-  border-radius: 18px;
-}
-
 .rows {
   display: flex;
   flex-direction: column;

@@ -91,7 +91,8 @@ export async function loadActivity() {
   } catch {
     // 서버를 쓸 수 없으면 기기에 남은 기록만 보여준다
   }
-  return [...remote, ...local].sort((a, b) => b.at.localeCompare(a.at))
+  // 서버는 +09:00, 기기 기록은 UTC(Z) 표기라 문자열이 아니라 시각으로 비교한다
+  return [...remote, ...local].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
 }
 
 /** 이번 주 월~일, 미션을 해낸 날이면 true */

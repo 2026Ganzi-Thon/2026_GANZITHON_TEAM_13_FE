@@ -47,10 +47,22 @@ export const restApi = {
     api.post('/rest/records', { type, breathingCompleted }),
 }
 
-// 아직 백엔드가 구현 전이라 응답 형식이 확정되지 않았다 (Kakao Local API 기반)
+export interface PlaceDto {
+  placeId: string
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  distanceMeters: number
+  placeUrl: string
+}
+
+// 카카오 장소 검색 기반이라 장소가 없으면 빈 배열이 오고, 키 설정 등 서버 문제는 5xx로 온다
 export const placeApi = {
   recommend: (missionId: number, latitude: number, longitude: number, radius: number) =>
-    api.get<unknown>('/places/recommendations', { missionId, latitude, longitude, radius }),
+    api
+      .get<{ places: PlaceDto[] }>('/places/recommendations', { missionId, latitude, longitude, radius })
+      .then((r) => r.places),
 }
 
 export const notificationApi = {

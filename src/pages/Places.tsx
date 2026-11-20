@@ -17,7 +17,7 @@ export function Places() {
   const navigate = useNavigate()
   const state = useLocation().state as PlacesState | null
   const [radius, setRadius] = useState(1000)
-  const [selected, setSelected] = useState<number>()
+  const [selected, setSelected] = useState<string>()
   const [starting, setStarting] = useState(false)
 
   const mission = state?.mission ?? findLocalMission(11)!
@@ -78,10 +78,7 @@ export function Places() {
             <span className="pill-title">{p.name}</span>
             <span className="badge">도보 {p.walkMinutes}분</span>
           </span>
-          <span
-            className="photo"
-            style={p.imageUrl ? { backgroundImage: `url(${p.imageUrl})` } : undefined}
-          />
+          {p.address && <span className="muted">{p.address}</span>}
         </button>
       ))}
     </Page>
